@@ -41,6 +41,7 @@ class ProduceArguments {
   final bool zeroRtpOnPause;
   final Map<String, dynamic> appData;
   final String source;
+  final Function? accept;
 
   const ProduceArguments({
     required this.track,
@@ -53,6 +54,7 @@ class ProduceArguments {
     this.zeroRtpOnPause = false,
     this.appData = const <String, dynamic>{},
     required this.source,
+    this.accept,
   });
 }
 
@@ -908,7 +910,7 @@ class Transport extends EnhancedEventEmitter {
           'producer': producer,
         });
 
-        producerCallback?.call(producer);
+        producerCallback?.call(producer, arguments.accept);
       } catch (error) {
         _handler.stopSending(sendResult.localId);
 
@@ -939,6 +941,7 @@ class Transport extends EnhancedEventEmitter {
     bool zeroRtpOnPause = false,
     Map<String, dynamic> appData = const <String, dynamic>{},
     required String source,
+    Function? accept,
   }) {
     _logger.debug('produce() [track:${track.toString()}');
 
@@ -970,6 +973,7 @@ class Transport extends EnhancedEventEmitter {
           zeroRtpOnPause: zeroRtpOnPause,
           appData: appData,
           source: source,
+          accept: accept,
         ),
       ),
     );
@@ -1090,6 +1094,7 @@ class Transport extends EnhancedEventEmitter {
     String label = '',
     String protocol = '',
     Map<String, dynamic> appData = const <String, dynamic>{},
+    Function? accept,
   }) {
     _logger.debug('produceData()');
 
@@ -1097,7 +1102,8 @@ class Transport extends EnhancedEventEmitter {
       throw ('not a sending Transport');
     } else if (_maxSctpMessageSize == null) {
       throw ('SCTP not enabled by remote Transport');
-    } if (listeners('connect').isEmpty && _connectionState == 'new') {
+    }
+    if (listeners('connect').isEmpty && _connectionState == 'new') {
       throw ('no "connect" listener set into this transport');
     } else if (listeners('producedata').isEmpty) {
       throw ('no "producedata" listener set into this transport');
@@ -1149,7 +1155,7 @@ class Transport extends EnhancedEventEmitter {
             'dataProducer': dataProducer,
           });
 
-          dataProducerCallback?.call(dataProducer);
+          dataProducerCallback?.call(dataProducer, accept);
         }));
   }
 
